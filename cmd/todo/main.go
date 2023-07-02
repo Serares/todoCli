@@ -83,7 +83,7 @@ func getTask(r io.Reader, args ...string) (string, error) {
 	if len(args) > 0 {
 		return strings.Join(args, " "), nil
 	}
-
+	// use this to read the STDIN input
 	s := bufio.NewScanner(r)
 	s.Scan()
 	if err := s.Err(); err != nil {
