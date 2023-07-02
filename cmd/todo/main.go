@@ -18,6 +18,7 @@ func main() {
 	// insert a custom message for the usage of the program
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "%s CLI tool\n", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "%s Tasks prefixed with an X are completed\n", os.Args[0])
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage information:\n")
 		flag.PrintDefaults()
 	}
@@ -33,11 +34,9 @@ func main() {
 
 	switch {
 	case *list:
-		for _, item := range *l {
-			if !item.Done {
-				fmt.Println(item.Task, ":", item.Done)
-			}
-		}
+		// we implemented the Stringer interface
+		// so we can just print the list directly
+		fmt.Print(l)
 	case *complete > 0:
 		if err := l.Complete(*complete); err != nil {
 			fmt.Fprintln(os.Stderr, err)
