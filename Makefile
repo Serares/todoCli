@@ -2,7 +2,7 @@ test:
 	go test . -v
 
 build:
-	go build -o ./bin/todo
+	go build ./cmd/todo/. -o ./bin/todo
 
 run: build
 	./bin/todo

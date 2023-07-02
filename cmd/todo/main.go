@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/Serares/todo"
 )
@@ -28,7 +31,7 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage information:\n")
 		flag.PrintDefaults()
 	}
-	task := flag.String("task", "", "Add a task to the list")
+	add := flag.Bool("add", false, "Add a task to the list")
 	list := flag.Bool("list", false, "List all tasks")
 	complete := flag.Int("complete", 0, "Give an id of the item to be completed")
 	fileName := flag.String("filename", "", "Define the filename where the tasks will be persisted")
@@ -56,8 +59,14 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-	case *task != "":
-		l.Add(*task)
+	case *add:
+		taskToAdd, err := getTask(os.Stdin, flag.Args()...)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		l.Add(taskToAdd)
 		if err := l.Save(todoFileName); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -67,4 +76,23 @@ func main() {
 		fmt.Fprintln(os.Stderr, "invalid option provided")
 		os.Exit(1)
 	}
+
+}
+
+func getTask(r io.Reader, args ...string) (string, error) {
+	if len(args) > 0 {
+		return strings.Join(args, " "), nil
+	}
+
+	s := bufio.NewScanner(r)
+	s.Scan()
+	if err := s.Err(); err != nil {
+		return "", err
+	}
+
+	if len(s.Text()) == 0 {
+		return "", fmt.Errorf("task cannot be blank")
+	}
+
+	return s.Text(), nil
 }
