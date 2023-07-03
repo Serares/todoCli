@@ -35,6 +35,9 @@ func main() {
 	list := flag.Bool("list", false, "List all tasks")
 	complete := flag.Int("complete", 0, "Give an id of the item to be completed")
 	fileName := flag.String("filename", "", "Define the filename where the tasks will be persisted")
+	delete := flag.Int("delete", 0, "Provide the task number to remove")
+	verbose := flag.Bool("v", false, "This flag will display the date of each task")
+	filterDoneTasks := flag.Bool("filter", false, "Use this flag to show only the tasks that are in progress")
 	flag.Parse()
 	// write to standard error if an error occurs and exit wih an exit code
 	if *fileName != "" {
@@ -49,7 +52,20 @@ func main() {
 	case *list:
 		// we implemented the Stringer interface
 		// so we can just print the list directly
-		fmt.Print(l)
+		if *filterDoneTasks {
+			l.FilterCompleted()
+		}
+
+		if *verbose {
+			fmt.Print(l.StringVerbose())
+		}
+
+		if !*verbose {
+			fmt.Print(l)
+		}
+
+		// do the get at the end in case the filter was triggered
+		l.Get(todoFileName)
 	case *complete > 0:
 		if err := l.Complete(*complete); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -70,6 +86,13 @@ func main() {
 		if err := l.Save(todoFileName); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
+		}
+	case *delete > 0:
+		if err := l.Delete(*delete); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+		if err := l.Save(todoFileName); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 		}
 	default:
 		// invalid argument provided

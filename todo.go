@@ -87,18 +87,45 @@ func (l *List) Get(filename string) error {
 	return json.Unmarshal(file, l)
 }
 
-func (l *List) String() string {
-	formatted := ""
+// create a new filtered list to be displayed
+func (l *List) FilterCompleted() {
+	filter(l)
+}
 
+func (l *List) String() string {
+	formatted := displayRow(false)
 	for k, t := range *l {
 		prefix := "  "
 		if t.Done {
 			prefix = "X "
 		}
-
 		// format the tasks to start from 1 and not 0
 		formatted += fmt.Sprintf("%s%d: %s\n", prefix, k+1, t.Task)
 	}
-
 	return formatted
+}
+
+func (l *List) StringVerbose() string {
+	formatted := displayRow(true)
+	for k, t := range *l {
+		createdAt := ""
+		prefix := "  "
+		if t.Done {
+			prefix = "X "
+		}
+		createdAt += "::: " + t.CreatedAt.Format(time.RFC822)
+		// format the tasks to start from 1 and not 0
+		formatted += fmt.Sprintf("%s%d: %s %v\n", prefix, k+1, t.Task, createdAt)
+	}
+	return formatted
+}
+
+func displayRow(isVerbose bool) string {
+	theHeaderRow := "DONE,  NO,  TASK"
+	if isVerbose {
+		theHeaderRow += " ,CreatedAt"
+	}
+
+	theHeaderRow += "\n"
+	return theHeaderRow
 }
