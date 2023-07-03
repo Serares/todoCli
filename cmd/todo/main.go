@@ -54,6 +54,8 @@ func main() {
 		// so we can just print the list directly
 		if *filterDoneTasks {
 			l.FilterCompleted()
+			// do the get at the end in case the filter was triggered
+			defer l.Get(todoFileName)
 		}
 
 		if *verbose {
@@ -63,9 +65,6 @@ func main() {
 		if !*verbose {
 			fmt.Print(l)
 		}
-
-		// do the get at the end in case the filter was triggered
-		l.Get(todoFileName)
 	case *complete > 0:
 		if err := l.Complete(*complete); err != nil {
 			fmt.Fprintln(os.Stderr, err)
