@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -30,6 +31,7 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), "HINT: Tasks prefixed with an X are completed\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage information:\n")
 		flag.PrintDefaults()
+		fmt.Fprintf(flag.CommandLine.Output(), "Add tasks, delete them and mark them as completed")
 	}
 
 	addUsageInfo := "Using the -add flag tasks can be provided\nEither by pipeing the strings to the program:\n\"strings that are going to be a task\" | ./program -add\n Or just by providing a string to the flag:\n./program -add \"task to be added to the list\" "
@@ -84,10 +86,12 @@ func main() {
 			os.Exit(1)
 		}
 
-		l.Add(taskToAdd)
-		if err := l.Save(todoFileName); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+		for _, task := range taskToAdd {
+			l.Add(task)
+			if err := l.Save(todoFileName); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
 		}
 	case *delete > 0:
 		if err := l.Delete(*delete); err != nil {
@@ -101,23 +105,29 @@ func main() {
 		fmt.Fprintln(os.Stderr, "invalid option provided")
 		os.Exit(1)
 	}
-
 }
 
-func getTask(r io.Reader, args ...string) (string, error) {
+func getTask(r io.Reader, args ...string) ([]string, error) {
+	listOfTasks := make([]string, 0)
 	if len(args) > 0 {
-		return strings.Join(args, " "), nil
+		listOfTasks = append(listOfTasks, strings.Join(args, " "))
+		return listOfTasks, nil
 	}
 	// use this to read the STDIN input
 	s := bufio.NewScanner(r)
-	s.Scan()
-	if err := s.Err(); err != nil {
-		return "", err
+	for s.Scan() {
+		if err := s.Err(); err != nil {
+			return nil, err
+		}
+
+		if len(s.Text()) != 0 {
+			listOfTasks = append(listOfTasks, s.Text())
+		}
 	}
 
-	if len(s.Text()) == 0 {
-		return "", fmt.Errorf("task cannot be blank")
+	if len(listOfTasks) > 0 {
+		return listOfTasks, nil
 	}
 
-	return s.Text(), nil
+	return nil, errors.New("invalid arguments provided")
 }

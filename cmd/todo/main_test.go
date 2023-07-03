@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -15,10 +16,13 @@ import (
 
 var (
 	binName  = "todo"
-	fileName = ".todo.json"
+	fileName = os.Getenv("TODO_FILENAME")
 )
 
 func TestMain(m *testing.M) {
+	if fileName == "" {
+		fileName = ".todo.json"
+	}
 	fmt.Println("Building tool...")
 	if runtime.GOOS == "windows" {
 		binName += ".exe"
@@ -64,6 +68,13 @@ func TestTodoCli(t *testing.T) {
 		}
 	})
 
+	t.Run("CompleteTask", func(t *testing.T) {
+		cmd := exec.Command(cmdPath, "-complete", "1")
+		if err := cmd.Run(); err != nil {
+			t.Fatal(err)
+		}
+	})
+
 	t.Run("ListTasks", func(t *testing.T) {
 		cmd := exec.Command(cmdPath, "-list")
 		out, err := cmd.CombinedOutput()
@@ -71,10 +82,13 @@ func TestTodoCli(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		expected := fmt.Sprintf("  1: %s\n  2: %s\n", task, task2)
-		if expected != string(out) {
-			t.Errorf("Expected %q, got %q instead\n", expected, string(out))
+
+		expected := fmt.Sprintf("X 1: %s\n  2: %s\n", task, task2)
+		outputToString := string(out)
+		lastIndexOfTableHeader := strings.Index(outputToString, "\n")
+		theOutputWithoutTableHeader := outputToString[lastIndexOfTableHeader+1:]
+		if expected != theOutputWithoutTableHeader {
+			t.Errorf("Expected %q, got %q instead\n", expected, theOutputWithoutTableHeader)
 		}
 	})
-
 }
