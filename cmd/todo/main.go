@@ -31,7 +31,10 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage information:\n")
 		flag.PrintDefaults()
 	}
-	add := flag.Bool("add", false, "Add a task to the list")
+
+	addUsageInfo := "Using the -add flag tasks can be provided\nEither by pipeing the strings to the program:\n\"strings that are going to be a task\" | ./program -add\n Or just by providing a string to the flag:\n./program -add \"task to be added to the list\" "
+
+	add := flag.Bool("add", false, addUsageInfo)
 	list := flag.Bool("list", false, "List all tasks")
 	complete := flag.Int("complete", 0, "Give an id of the item to be completed")
 	fileName := flag.String("filename", "", "Define the filename where the tasks will be persisted")
