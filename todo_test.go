@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Serares/todo"
+	todo "github.com/Serares/todoCli"
 )
 
 // we use std lib os/ioutil to create and delete temporary files

@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Serares/todo"
+	todo "github.com/Serares/todoCli"
 )
 
 // hardcoded filename
